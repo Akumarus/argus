@@ -100,16 +100,58 @@ int main(void)
   __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 1500);
   __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 1500);
   __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, 1500);
+
+  CAN_FilterTypeDef filter = {0};
+  filter.FilterIdHigh = 0x0000;
+  filter.FilterIdLow = 0x0000;
+  filter.FilterMaskIdHigh = 0x0000;
+  filter.FilterMaskIdLow = 0x0000;
+  filter.FilterFIFOAssignment = CAN_RX_FIFO0;
+  filter.FilterBank = 0;
+  filter.FilterMode = CAN_FILTERMODE_IDMASK;
+  filter.FilterScale = CAN_FILTERSCALE_32BIT;
+  filter.FilterActivation = ENABLE;
+  filter.SlaveStartFilterBank = 14;
+
+  if (HAL_CAN_ConfigFilter(&hcan, &filter) != HAL_OK) {
+      Error_Handler();
+  }
+
+  if (HAL_CAN_Start(&hcan) != HAL_OK) {
+      Error_Handler();
+  }
+
+  if (HAL_CAN_ActivateNotification(&hcan,
+          CAN_IT_RX_FIFO0_MSG_PENDING |
+          CAN_IT_TX_MAILBOX_EMPTY |
+          CAN_IT_ERROR) != HAL_OK) {
+      Error_Handler();
+  }
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 1500);
-    __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 500);
-    __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, 500);
-    HAL_Delay(2000);
+    CAN_TxHeaderTypeDef txHeader;
+    uint8_t txData[8] = {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88};
+    uint32_t txMailbox;
+
+    txHeader.StdId = 0x123;         // стандартный ID
+    txHeader.ExtId = 0;
+    txHeader.IDE   = CAN_ID_STD;
+    txHeader.RTR   = CAN_RTR_DATA;
+    txHeader.DLC   = 8;
+    txHeader.TransmitGlobalTime = DISABLE;
+
+    if (HAL_CAN_AddTxMessage(&hcan, &txHeader, txData, &txMailbox) != HAL_OK) {
+        Error_Handler();
+    }
+    HAL_Delay(100);
+    // __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 1500);
+    // __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 500);
+    // __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, 500);
+    // HAL_Delay(2000);
 
     // __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, 500);
     // HAL_Delay(2000);
@@ -176,7 +218,18 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
+{
+    CAN_RxHeaderTypeDef rxHeader;
+    uint8_t rxData[8];
 
+    if (HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &rxHeader, rxData) == HAL_OK)
+    {
+        // rxHeader.StdId — ID, rxHeader.DLC — длина, rxData — данные
+        // Например, эхо-ответ:
+        HAL_CAN_AddTxMessage(hcan, &rxHeader, rxData, (uint32_t*)&(uint32_t){0});
+    }
+}
 /* USER CODE END 4 */
 
 /**
