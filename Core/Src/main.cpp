@@ -26,6 +26,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "can.hpp"
+#include "current_sensor.hpp"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -46,14 +47,9 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-#define VREF        3.3f
-#define ADC_MAX     4095.0f
-#define DIV_K       (2.0f / 3.0f)    // делитель 10k/20k
-#define SENS        0.185f           // В/А для ACS712-05B
-
-static float offset_v = 2.5f;        // напряжение при нуле тока
 float current = 0.0f;                // измеренный ток, А
 volatile uint16_t adc_avg = 0;       // среднее значение АЦП (заполняется в прерывании)
+uint16_t mA = 0;                          // измеренный ток, мА
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -64,16 +60,7 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-static float adc_sensor_volts(void)
-{
-  float v_adc = adc_avg * VREF / ADC_MAX;
-  return v_adc / DIV_K;              // напряжение на выходе датчика
-}
-
-static float get_current(void)
-{
-  return (adc_sensor_volts() - offset_v) / SENS;   // Амперы
-}
+CurrentSensor currentSensor;
 /* USER CODE END 0 */
 
 /**
@@ -124,7 +111,7 @@ int main(void)
   HAL_ADCEx_Calibration_Start(&hadc1);
   HAL_ADC_Start_IT(&hadc1);          // запуск, дальше всё идёт по прерываниям
   HAL_Delay(100);                    // ждём первых усреднённых данных
-  offset_v = adc_sensor_volts();     // калибровка нуля: ток должен быть 0!
+  currentSensor.calibrate(adc_avg);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -224,12 +211,13 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc)
   static uint8_t  n = 0;
 
   sum += HAL_ADC_GetValue(hadc);
-  if (++n == 64)
+  if (++n == 100)
   {
-    adc_avg = sum / 64;
+    adc_avg = sum / 100;
     sum = 0;
     n = 0;
-    current = get_current();
+    current = currentSensor.calculate(adc_avg);
+    mA = (uint16_t)(current * 1000.0f);   // в мА
   }
 }
 /* USER CODE END 4 */
