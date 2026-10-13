@@ -25,7 +25,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "can.hpp"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -117,32 +117,9 @@ int main(void)
   __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 1500);
   __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, 1500);
 
-  CAN_FilterTypeDef filter = {0};
-  filter.FilterIdHigh = 0x0000;
-  filter.FilterIdLow = 0x0000;
-  filter.FilterMaskIdHigh = 0x0000;
-  filter.FilterMaskIdLow = 0x0000;
-  filter.FilterFIFOAssignment = CAN_RX_FIFO0;
-  filter.FilterBank = 0;
-  filter.FilterMode = CAN_FILTERMODE_IDMASK;
-  filter.FilterScale = CAN_FILTERSCALE_32BIT;
-  filter.FilterActivation = ENABLE;
-  filter.SlaveStartFilterBank = 14;
-
-  if (HAL_CAN_ConfigFilter(&hcan, &filter) != HAL_OK) {
-      Error_Handler();
-  }
-
-  if (HAL_CAN_Start(&hcan) != HAL_OK) {
-      Error_Handler();
-  }
-
-  if (HAL_CAN_ActivateNotification(&hcan,
-          CAN_IT_RX_FIFO0_MSG_PENDING |
-          CAN_IT_TX_MAILBOX_EMPTY |
-          CAN_IT_ERROR) != HAL_OK) {
-      Error_Handler();
-  }
+  static Can can;
+  can.config();
+  can.start();
 
   HAL_ADCEx_Calibration_Start(&hadc1);
   HAL_ADC_Start_IT(&hadc1);          // запуск, дальше всё идёт по прерываниям
@@ -168,7 +145,9 @@ int main(void)
     if (HAL_CAN_AddTxMessage(&hcan, &txHeader, txData, &txMailbox) != HAL_OK) {
         Error_Handler();
     }
-
+    uint32_t id = 0x123;
+    uint8_t data[8] = {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88};
+    can.send(id, data, sizeof(data));
     HAL_Delay(100);
     // __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 1500);
     // __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 500);
@@ -249,7 +228,7 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
     {
         // rxHeader.StdId — ID, rxHeader.DLC — длина, rxData — данные
         // Например, эхо-ответ:
-        HAL_CAN_AddTxMessage(hcan, &rxHeader, rxData, (uint32_t*)&(uint32_t){0});
+        // HAL_CAN_AddTxMessage(hcan, &rxHeader, rxData, (uint32_t*)&(uint32_t){0});
     }
 }
 
