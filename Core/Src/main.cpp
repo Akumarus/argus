@@ -131,24 +131,10 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    CAN_TxHeaderTypeDef txHeader;
-    uint8_t txData[8] = {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88};
-    uint32_t txMailbox;
-
-    txHeader.StdId = 0x123;         // стандартный ID
-    txHeader.ExtId = 0;
-    txHeader.IDE   = CAN_ID_STD;
-    txHeader.RTR   = CAN_RTR_DATA;
-    txHeader.DLC   = 8;
-    txHeader.TransmitGlobalTime = DISABLE;
-
-    if (HAL_CAN_AddTxMessage(&hcan, &txHeader, txData, &txMailbox) != HAL_OK) {
-        Error_Handler();
-    }
-    uint32_t id = 0x123;
+    uint32_t id = 0x180 + 1;
     uint8_t data[8] = {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88};
     can.send(id, data, sizeof(data));
-    HAL_Delay(100);
+    HAL_Delay(1000);
     // __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 1500);
     // __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 500);
     // __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, 500);
