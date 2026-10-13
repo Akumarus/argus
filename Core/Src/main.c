@@ -46,7 +46,14 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
+#define VREF        3.3f
+#define ADC_MAX     4095.0f
+#define DIV_K       (2.0f / 3.0f)    // делитель 10k/20k
+#define SENS        0.185f           // В/А для ACS712-05B
 
+static float offset_v = 2.5f;        // напряжение при нуле тока
+float current = 0.0f;                // измеренный ток, А
+volatile uint16_t adc_avg = 0;       // среднее значение АЦП (заполняется в прерывании)
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -57,7 +64,16 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+static float adc_sensor_volts(void)
+{
+  float v_adc = adc_avg * VREF / ADC_MAX;
+  return v_adc / DIV_K;              // напряжение на выходе датчика
+}
 
+static float get_current(void)
+{
+  return (adc_sensor_volts() - offset_v) / SENS;   // Амперы
+}
 /* USER CODE END 0 */
 
 /**
@@ -127,6 +143,11 @@ int main(void)
           CAN_IT_ERROR) != HAL_OK) {
       Error_Handler();
   }
+
+  HAL_ADCEx_Calibration_Start(&hadc1);
+  HAL_ADC_Start_IT(&hadc1);          // запуск, дальше всё идёт по прерываниям
+  HAL_Delay(100);                    // ждём первых усреднённых данных
+  offset_v = adc_sensor_volts();     // калибровка нуля: ток должен быть 0!
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -147,6 +168,7 @@ int main(void)
     if (HAL_CAN_AddTxMessage(&hcan, &txHeader, txData, &txMailbox) != HAL_OK) {
         Error_Handler();
     }
+
     HAL_Delay(100);
     // __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 1500);
     // __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 500);
@@ -229,6 +251,21 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
         // Например, эхо-ответ:
         HAL_CAN_AddTxMessage(hcan, &rxHeader, rxData, (uint32_t*)&(uint32_t){0});
     }
+}
+
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc)
+{
+  static uint32_t sum = 0;
+  static uint8_t  n = 0;
+
+  sum += HAL_ADC_GetValue(hadc);
+  if (++n == 64)
+  {
+    adc_avg = sum / 64;
+    sum = 0;
+    n = 0;
+    current = get_current();
+  }
 }
 /* USER CODE END 4 */
 
