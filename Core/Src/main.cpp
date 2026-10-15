@@ -21,7 +21,9 @@
 #include "adc.h"
 #include "can.h"
 #include "tim.h"
+#include "dma.h"
 #include "gpio.h"
+
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -52,6 +54,7 @@
 float current = 0.0f;                // измеренный ток, А
 volatile uint16_t adc_avg = 0;       // среднее значение АЦП (заполняется в прерывании)
 uint16_t mA = 0;                          // измеренный ток, мА
+uint16_t adc_buf[3];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -94,6 +97,7 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_TIM1_Init();
   MX_ADC1_Init();
   MX_CAN_Init();
@@ -108,8 +112,8 @@ int main(void)
   __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 1500);
   __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, 1500);
 
-  HAL_ADCEx_Calibration_Start(&hadc1);
-  HAL_ADC_Start_IT(&hadc1);          // запуск, дальше всё идёт по прерываниям
+  // HAL_ADCEx_Calibration_Start(&hadc1);
+  HAL_ADC_Start_DMA(&hadc1, (uint32_t*)adc_buf, 3);
   HAL_Delay(100);                    // ждём первых усреднённых данных
   currentSensor.calibrate(adc_avg);
   /* USER CODE END 2 */
@@ -119,7 +123,9 @@ int main(void)
   while (1)
   {
     App::Run();
-
+        uint16_t ch1 = adc_buf[0]; // Rank 1
+        uint16_t ch2 = adc_buf[1]; // Rank 2
+        uint16_t ch3 = adc_buf[2]; // Rank 3
     // __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 1500);
     // __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 500);
     // __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, 500);

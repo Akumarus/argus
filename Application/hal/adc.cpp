@@ -1,6 +1,8 @@
 #include "adc.hpp"
 #include "adc.h"
 
+
+
 Adc::Adc()
 {
 
@@ -13,7 +15,7 @@ void Adc::Calibrate()
 
 void Adc::Start()
 {
-    HAL_ADC_Start_IT(&hadc1);
+    // HAL_ADC_Start_DMA(&hadc1, (uint32_t*)adc_buf, 3);
 }
 
 void Adc::OnComplite()
