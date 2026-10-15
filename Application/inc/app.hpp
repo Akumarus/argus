@@ -2,6 +2,7 @@
 #include "canopen.hpp"
 #include "acs712.hpp"
 #include "avg.hpp"
+#include "adc.hpp"
 
 enum class JointId : uint8_t { Coxa, Femur, Tibia, Count };
 
@@ -13,10 +14,19 @@ public:
     Avg<Samples> avg = {};
     Acs712 acs712 = {};
     float current = 0.0f;
+    uint16_t adcAvrg = 0;
+    uint16_t mA = 0;
 
     void UpdateCurrent(uint16_t adc)
     {
-        current = acs712.calculate(avg.update(adc));
+        adcAvrg = avg.update(adc);
+        current = acs712.calculate(adcAvrg);
+        mA = static_cast<uint16_t>(current * 1000);
+    }
+
+    void CalibCurrent()
+    {
+        acs712.calibrate(adcAvrg);
     }
 };
 
@@ -27,6 +37,8 @@ public:
     App() = delete;
     static void Init();
     static void Run();
+
+    static void JointsCalibCurrent();
     static void OnAdcComplite(uint16_t *adc);
 
     static Joint& getJoint(JointId id)
@@ -38,5 +50,6 @@ public:
 private:
     inline static Joint joints[JointCount];
     inline static Canopen canopen;
+    inline static Adc adc;
 };
 

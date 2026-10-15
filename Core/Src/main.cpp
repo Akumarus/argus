@@ -112,10 +112,6 @@ int main(void)
   __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 1500);
   __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, 1500);
 
-  // HAL_ADCEx_Calibration_Start(&hadc1);
-  HAL_ADC_Start_DMA(&hadc1, (uint32_t*)adc_buf, 3);
-  HAL_Delay(100);                    // ждём первых усреднённых данных
-  currentSensor.calibrate(adc_avg);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -123,9 +119,6 @@ int main(void)
   while (1)
   {
     App::Run();
-        uint16_t ch1 = adc_buf[0]; // Rank 1
-        uint16_t ch2 = adc_buf[1]; // Rank 2
-        uint16_t ch3 = adc_buf[2]; // Rank 3
     // __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 1500);
     // __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 500);
     // __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, 500);
@@ -208,22 +201,6 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
         // HAL_CAN_AddTxMessage(hcan, &rxHeader, rxData, (uint32_t*)&(uint32_t){0});
     }
 }
-
-// void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc)
-// {
-//   static uint32_t sum = 0;
-//   static uint8_t  n = 0;
-
-//   sum += HAL_ADC_GetValue(hadc);
-//   if (++n == 100)
-//   {
-//     adc_avg = sum / 100;
-//     sum = 0;
-//     n = 0;
-//     current = currentSensor.calculate(adc_avg);
-//     mA = (uint16_t)(current * 1000.0f);   // в мА
-//   }
-// }
 /* USER CODE END 4 */
 
 /**
