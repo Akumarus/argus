@@ -48,11 +48,14 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     ${CMAKE_SOURCE_DIR}/Application/src/acs712.cpp
     ${CMAKE_SOURCE_DIR}/Application/src/servo.cpp
     ${CMAKE_SOURCE_DIR}/Application/src/app.cpp
+
+    ${CMAKE_SOURCE_DIR}/Application/hal/adc.cpp
 )
 
 # Add include paths
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     ${CMAKE_SOURCE_DIR}/Application/inc
+    ${CMAKE_SOURCE_DIR}/Application/hal
 )
 
 # Add project symbols (macros)

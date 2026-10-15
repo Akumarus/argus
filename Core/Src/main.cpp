@@ -203,21 +203,21 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
     }
 }
 
-void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc)
-{
-  static uint32_t sum = 0;
-  static uint8_t  n = 0;
+// void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc)
+// {
+//   static uint32_t sum = 0;
+//   static uint8_t  n = 0;
 
-  sum += HAL_ADC_GetValue(hadc);
-  if (++n == 100)
-  {
-    adc_avg = sum / 100;
-    sum = 0;
-    n = 0;
-    current = currentSensor.calculate(adc_avg);
-    mA = (uint16_t)(current * 1000.0f);   // в мА
-  }
-}
+//   sum += HAL_ADC_GetValue(hadc);
+//   if (++n == 100)
+//   {
+//     adc_avg = sum / 100;
+//     sum = 0;
+//     n = 0;
+//     current = currentSensor.calculate(adc_avg);
+//     mA = (uint16_t)(current * 1000.0f);   // в мА
+//   }
+// }
 /* USER CODE END 4 */
 
 /**
