@@ -1,10 +1,10 @@
 #pragma once
 #include <cstdint>
 
-class CurrentSensor {
+class Acs712 {
 public:
-    CurrentSensor() : gain(V_A), offset(0.0f) {}
-    ~CurrentSensor() {}
+    Acs712() : gain(V_A), offset(0.0f) {}
+    ~Acs712() {}
 
     void calibrate(uint16_t adc) { this->offset = getVoltage(adc); }
     float calculate(uint16_t adc) { return getCurrent(adc); }

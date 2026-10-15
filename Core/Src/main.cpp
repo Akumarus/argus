@@ -26,7 +26,9 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "can.hpp"
-#include "current_sensor.hpp"
+#include "acs712.hpp"
+#include <cstring>
+#include "app.hpp"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -60,7 +62,7 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-CurrentSensor currentSensor;
+Acs712 currentSensor;
 /* USER CODE END 0 */
 
 /**
@@ -96,6 +98,8 @@ int main(void)
   MX_ADC1_Init();
   MX_CAN_Init();
   /* USER CODE BEGIN 2 */
+  App::Init();
+
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);
@@ -118,9 +122,11 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    uint32_t id = 0x180 + 1;
-    uint8_t data[8] = {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88};
-    can.send(id, data, sizeof(data));
+    App::Run();
+    uint8_t nodeId = 1;
+    uint8_t data[8] = {0};
+    memcpy(&data[0], &current, sizeof(current));
+    can.sendTpdo1(nodeId, data, sizeof(data));
     HAL_Delay(1000);
     // __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 1500);
     // __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 500);

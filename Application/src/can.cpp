@@ -49,3 +49,8 @@ void Can::send(uint32_t id, uint8_t* data, uint32_t size)
 
     HAL_CAN_AddTxMessage(&hcan, &header, data, 0);
 }
+
+void Can::sendTpdo1(uint16_t nodeId, uint8_t *data, uint32_t size)
+{
+    send(nodeId + CobId::TPDO1, data, size);
+}
