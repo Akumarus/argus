@@ -1,5 +1,5 @@
 #pragma once
-#include "can.hpp"
+#include "canopen.hpp"
 #include "acs712.hpp"
 
 class App {
@@ -9,6 +9,6 @@ public:
     static void Run();
 
 private:
-    static Can can;
-    static Acs712 acs712[3];
+    inline static Canopen canopen;
+    inline static Acs712 acs712[3];
 };

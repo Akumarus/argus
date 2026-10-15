@@ -1,11 +1,11 @@
 #pragma once
 #include "stdint.h"
 
-class Can
+class Canopen
 {
 public:
-    Can();
-    ~Can();
+    Canopen();
+    ~Canopen();
     void config();
     void start();
 

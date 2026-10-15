@@ -44,9 +44,9 @@ target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
 
 # Add sources to executable
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE
+    ${CMAKE_SOURCE_DIR}/Application/src/canopen.cpp
     ${CMAKE_SOURCE_DIR}/Application/src/acs712.cpp
     ${CMAKE_SOURCE_DIR}/Application/src/servo.cpp
-    ${CMAKE_SOURCE_DIR}/Application/src/can.cpp
     ${CMAKE_SOURCE_DIR}/Application/src/app.cpp
 )
 

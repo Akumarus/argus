@@ -25,7 +25,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "can.hpp"
+#include "canopen.hpp"
 #include "acs712.hpp"
 #include <cstring>
 #include "app.hpp"
@@ -108,10 +108,6 @@ int main(void)
   __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 1500);
   __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, 1500);
 
-  static Can can;
-  can.config();
-  can.start();
-
   HAL_ADCEx_Calibration_Start(&hadc1);
   HAL_ADC_Start_IT(&hadc1);          // запуск, дальше всё идёт по прерываниям
   HAL_Delay(100);                    // ждём первых усреднённых данных
@@ -123,11 +119,7 @@ int main(void)
   while (1)
   {
     App::Run();
-    uint8_t nodeId = 1;
-    uint8_t data[8] = {0};
-    memcpy(&data[0], &current, sizeof(current));
-    can.sendTpdo1(nodeId, data, sizeof(data));
-    HAL_Delay(1000);
+
     // __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 1500);
     // __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 500);
     // __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, 500);

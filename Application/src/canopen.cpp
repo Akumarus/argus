@@ -1,17 +1,17 @@
-#include "can.hpp"
+#include "canopen.hpp"
 #include "can.h"
 
-Can::Can()
+Canopen::Canopen()
 {
 
 }
 
-Can::~Can()
+Canopen::~Canopen()
 {
 
 }
 
-void Can::config()
+void Canopen::config()
 {
     CAN_FilterTypeDef filter = {
         .FilterIdHigh = 0x0000,
@@ -29,14 +29,14 @@ void Can::config()
     HAL_CAN_ConfigFilter(&hcan, &filter);
 }
 
-void Can::start()
+void Canopen::start()
 {
     HAL_CAN_Start(&hcan);
     uint32_t flags = CAN_IT_RX_FIFO0_MSG_PENDING | CAN_IT_TX_MAILBOX_EMPTY | CAN_IT_ERROR;
     HAL_CAN_ActivateNotification(&hcan, flags);
 }
 
-void Can::send(uint32_t id, uint8_t* data, uint32_t size)
+void Canopen::send(uint32_t id, uint8_t* data, uint32_t size)
 {
     CAN_TxHeaderTypeDef header = {
         .StdId = id,
@@ -50,7 +50,7 @@ void Can::send(uint32_t id, uint8_t* data, uint32_t size)
     HAL_CAN_AddTxMessage(&hcan, &header, data, 0);
 }
 
-void Can::sendTpdo1(uint16_t nodeId, uint8_t *data, uint32_t size)
+void Canopen::sendTpdo1(uint16_t nodeId, uint8_t *data, uint32_t size)
 {
     send(nodeId + CobId::TPDO1, data, size);
 }
