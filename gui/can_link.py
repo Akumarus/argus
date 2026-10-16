@@ -15,9 +15,12 @@ class CanLink:
         self.net.subscribe(self.TX_PDO1 + node_id, self._on_tpdo)
 
     def _on_tpdo(self, cob_id, data, timestamp):
-        print(f"Cob_id: {cob_id}")
-        print(f"Data: {data}")
-        print(f"Len: {len(data)}")
+        coxaCurrent = int.from_bytes(data[:2], "little")
+        femurCurrent = int.from_bytes(data[2:4], "little")
+        tibiaCurrent = int.from_bytes(data[4:6], "little")
+        print(f"COB-ID: 0x{cob_id:X}, Coxa current: {coxaCurrent}")
+        print(f"COB-ID: 0x{cob_id:X}, Femur current: {femurCurrent}")
+        print(f"COB-ID: 0x{cob_id:X}, Tibia current: {tibiaCurrent}")
 
     def close(self):
         self.net.disconnect()
@@ -33,3 +36,5 @@ try:
         sleep(1)
 except KeyboardInterrupt:
     link.close()
+
+    
